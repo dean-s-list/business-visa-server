@@ -1,0 +1,123 @@
+{
+    "version": "5",
+    "dialect": "mysql",
+    "id": "3632dd7f-ba5f-4c95-ae1a-74e2217c887b",
+    "prevId": "00000000-0000-0000-0000-000000000000",
+    "tables": {
+        "users": {
+            "name": "users",
+            "columns": {
+                "id": {
+                    "name": "id",
+                    "type": "serial",
+                    "primaryKey": true,
+                    "notNull": true,
+                    "autoincrement": true
+                },
+                "walletAddress": {
+                    "name": "walletAddress",
+                    "type": "varchar(50)",
+                    "primaryKey": false,
+                    "notNull": true,
+                    "autoincrement": false
+                },
+                "name": {
+                    "name": "name",
+                    "type": "varchar(250)",
+                    "primaryKey": false,
+                    "notNull": false,
+                    "autoincrement": false
+                },
+                "email": {
+                    "name": "email",
+                    "type": "varchar(250)",
+                    "primaryKey": false,
+                    "notNull": true,
+                    "autoincrement": false
+                },
+                "profileImage": {
+                    "name": "profileImage",
+                    "type": "text",
+                    "primaryKey": false,
+                    "notNull": false,
+                    "autoincrement": false
+                },
+                "discordId": {
+                    "name": "discordId",
+                    "type": "varchar(250)",
+                    "primaryKey": false,
+                    "notNull": true,
+                    "autoincrement": false
+                },
+                "country": {
+                    "name": "country",
+                    "type": "varchar(100)",
+                    "primaryKey": false,
+                    "notNull": false,
+                    "autoincrement": false
+                },
+                "nftType": {
+                    "name": "nftType",
+                    "type": "enum('business','member')",
+                    "primaryKey": false,
+                    "notNull": true,
+                    "autoincrement": false
+                },
+                "role": {
+                    "name": "role",
+                    "type": "enum('master-admin','admin','client','user')",
+                    "primaryKey": false,
+                    "notNull": false,
+                    "autoincrement": false,
+                    "default": "'user'"
+                },
+                "nftId": {
+                    "name": "nftId",
+                    "type": "int",
+                    "primaryKey": false,
+                    "notNull": false,
+                    "autoincrement": false
+                },
+                "nftExpiresAt": {
+                    "name": "nftExpiresAt",
+                    "type": "timestamp",
+                    "primaryKey": false,
+                    "notNull": false,
+                    "autoincrement": false
+                },
+                "createdAt": {
+                    "name": "createdAt",
+                    "type": "timestamp",
+                    "primaryKey": false,
+                    "notNull": false,
+                    "autoincrement": false,
+                    "default": "(now())"
+                },
+                "updatedAt": {
+                    "name": "updatedAt",
+                    "type": "timestamp",
+                    "primaryKey": false,
+                    "notNull": false,
+                    "autoincrement": false,
+                    "onUpdate": true
+                }
+            },
+            "indexes": {
+                "address_idx": {
+                    "name": "address_idx",
+                    "columns": ["walletAddress"],
+                    "isUnique": true
+                }
+            },
+            "foreignKeys": {},
+            "compositePrimaryKeys": {},
+            "uniqueConstraints": {}
+        }
+    },
+    "schemas": {},
+    "_meta": {
+        "schemas": {},
+        "tables": {},
+        "columns": {}
+    }
+}
