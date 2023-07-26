@@ -31,11 +31,14 @@ export const usersTable = mysqlTable(
         nftId: int("nftId"),
         nftIssuedAt: timestamp("nftIssuedAt"),
         nftExpiresAt: timestamp("nftExpiresAt"),
+        nftStatus: mysqlEnum("nftStatus", ["active", "expired"]),
+        nftRenewedAt: timestamp("nftRenewedAt"),
         createdAt: timestamp("createdAt").defaultNow(),
         updatedAt: timestamp("updatedAt").onUpdateNow(),
     },
     (users) => ({
         addressIndex: uniqueIndex("address_idx").on(users.walletAddress),
+        emailIndex: uniqueIndex("email_idx").on(users.email),
     })
 );
 
@@ -59,6 +62,7 @@ export const acceptedApplicantsTable = mysqlTable(
     },
     (users) => ({
         addressIndex: uniqueIndex("address_idx").on(users.walletAddress),
+        emailIndex: uniqueIndex("email_idx").on(users.email),
     })
 );
 

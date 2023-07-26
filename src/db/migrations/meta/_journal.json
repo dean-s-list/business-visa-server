@@ -1,27 +1,48 @@
 {
-    "version": "5",
-    "dialect": "mysql",
-    "entries": [
-        {
-            "idx": 0,
-            "version": "5",
-            "when": 1690131595247,
-            "tag": "0000_skinny_firedrake",
-            "breakpoints": true
-        },
-        {
-            "idx": 1,
-            "version": "5",
-            "when": 1690202693763,
-            "tag": "0001_aberrant_black_tarantula",
-            "breakpoints": true
-        },
-        {
-            "idx": 2,
-            "version": "5",
-            "when": 1690230245490,
-            "tag": "0002_low_gambit",
-            "breakpoints": true
-        }
-    ]
+  "version": "5",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1690131595247,
+      "tag": "0000_skinny_firedrake",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1690202693763,
+      "tag": "0001_aberrant_black_tarantula",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1690230245490,
+      "tag": "0002_low_gambit",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1690385075218,
+      "tag": "0003_spotty_leper_queen",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1690397862179,
+      "tag": "0004_aspiring_tattoo",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1690398981716,
+      "tag": "0005_deep_domino",
+      "breakpoints": true
+    }
+  ]
 }

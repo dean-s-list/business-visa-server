@@ -29,6 +29,9 @@ const envSchema = z.object({
     QSTASH_TOKEN: z.string().nonempty(),
     QSTASH_CURRENT_SIGNING_KEY: z.string().nonempty(),
     QSTASH_NEXT_SIGNING_KEY: z.string().nonempty(),
+
+    // F Sphere
+    SPHERE_PAYMENT_SUCCESS_WEBHOOK_SECRET: z.string().nonempty(),
 });
 
 const parseEnv = () => {

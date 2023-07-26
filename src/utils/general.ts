@@ -2,13 +2,21 @@ export const logToConsole = (
     message: string,
     data?: object | string | number
 ) => {
-    console.log(message, data);
+    if (data) {
+        console.log(message, data);
+    } else {
+        console.log(message);
+    }
 };
 
-export const logErrorToConsole = (message: string, error: unknown) => {
+export const logErrorToConsole = (
+    message: string,
+    error: unknown,
+    showFullError: boolean = false
+) => {
     const errorMessage = error instanceof Error ? error?.message : error;
 
-    console.error(message, errorMessage);
+    console.error(message, showFullError ? error : errorMessage);
 };
 
 export const isBase64 = (value: string) => {

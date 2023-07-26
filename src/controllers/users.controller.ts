@@ -10,7 +10,7 @@ import db from "../db/index.ts";
 import { usersTable } from "../db/schema/index.ts";
 import env from "../env/index.ts";
 import { getUserQueryValidator } from "../validators/users.ts";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 export const getUser = async (req: Request, res: Response) => {
     try {
@@ -48,8 +48,12 @@ export const getUser = async (req: Request, res: Response) => {
             users = await db
                 .select()
                 .from(usersTable)
-                .where(eq(usersTable.walletAddress, walletAddress))
-                .where(eq(usersTable.role, userType));
+                .where(
+                    and(
+                        eq(usersTable.walletAddress, walletAddress),
+                        eq(usersTable.role, userType)
+                    )
+                );
         } else {
             users = await db
                 .select()
