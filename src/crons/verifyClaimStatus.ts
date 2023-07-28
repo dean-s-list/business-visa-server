@@ -1,15 +1,15 @@
 import cron from "node-cron";
-import { logErrorToConsole, logToConsole } from "../utils/general.ts";
+import { logErrorToConsole, logToConsole } from "../utils/general.js";
 
 import { and, eq, isNotNull } from "drizzle-orm";
-import { DEANSLIST_EMAIL } from "../constants/EMAIL.ts";
-import { UNDERDOG_BUSINESS_VISA_PROJECT_ID } from "../constants/UNDERDOG.ts";
-import db from "../db/index.ts";
-import { acceptedApplicantsTable, usersTable } from "../db/schema/index.ts";
-import underdogApiInstance from "../services/underdog.ts";
-import type { NftDetails } from "../types/underdog.ts";
-import resend from "../services/resend.ts";
-import VISA_STATUS from "../constants/VISA_STATUS.ts";
+import { DEANSLIST_EMAIL } from "../constants/EMAIL.js";
+import { UNDERDOG_BUSINESS_VISA_PROJECT_ID } from "../constants/UNDERDOG.js";
+import db from "../db/index.js";
+import { acceptedApplicantsTable, usersTable } from "../db/schema/index.js";
+import underdogApiInstance from "../services/underdog.js";
+import type { NftDetails } from "../types/underdog.js";
+import resend from "../services/resend.js";
+import VISA_STATUS from "../constants/VISA_STATUS.js";
 
 const verifyClaimStatus = async () => {
     try {

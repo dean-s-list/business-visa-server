@@ -8,7 +8,7 @@ dist/
 .env
 
 # Ignore editor specific files and directories
-.vscode/
+# .vscode/
 
 # Ignore macOS specific files
 .DS_Store

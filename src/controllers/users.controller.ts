@@ -1,15 +1,15 @@
-import { logErrorToConsole } from "../utils/general.ts";
+import { logErrorToConsole } from "../utils/general.js";
 import type { Request, Response } from "express";
 import {
     handleApiAuthError,
     handleApiClientError,
     handleApiRouteError,
     successHandler,
-} from "../utils/api.ts";
-import db from "../db/index.ts";
-import { usersTable } from "../db/schema/index.ts";
-import env from "../env/index.ts";
-import { getUserQueryValidator } from "../validators/users.ts";
+} from "../utils/api.js";
+import db from "../db/index.js";
+import { usersTable } from "../db/schema/index.js";
+import env from "../env/index.js";
+import { getUserQueryValidator } from "../validators/users.js";
 import { and, eq } from "drizzle-orm";
 
 export const getUser = async (req: Request, res: Response) => {

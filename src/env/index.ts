@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { logErrorToConsole } from "../utils/general.ts";
+import { logErrorToConsole } from "../utils/general.js";
 
 import "dotenv/config";
 

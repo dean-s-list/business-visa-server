@@ -1,31 +1,31 @@
-import { logErrorToConsole, logToConsole } from "../utils/general.ts";
+import { logErrorToConsole, logToConsole } from "../utils/general.js";
 import type { Request, Response } from "express";
-import { acceptApplicantBodyValidator } from "../validators/applicants.ts";
+import { acceptApplicantBodyValidator } from "../validators/applicants.js";
 import {
     handleApiAuthError,
     handleApiClientError,
     handleApiRouteError,
     successHandler,
-} from "../utils/api.ts";
-import db from "../db/index.ts";
-import { acceptedApplicantsTable, usersTable } from "../db/schema/index.ts";
-import env from "../env/index.ts";
-import qstashClient from "../services/qstash.ts";
+} from "../utils/api.js";
+import db from "../db/index.js";
+import { acceptedApplicantsTable, usersTable } from "../db/schema/index.js";
+import env from "../env/index.js";
+import qstashClient from "../services/qstash.js";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { addDays } from "date-fns";
-import underdogApiInstance from "../services/underdog.ts";
-import { UNDERDOG_BUSINESS_VISA_PROJECT_ID } from "../constants/UNDERDOG.ts";
-import VISA_STATUS from "../constants/VISA_STATUS.ts";
+import underdogApiInstance from "../services/underdog.js";
+import { UNDERDOG_BUSINESS_VISA_PROJECT_ID } from "../constants/UNDERDOG.js";
+import VISA_STATUS from "../constants/VISA_STATUS.js";
 import type {
     GetAllNftsResponse,
     NftDetails,
     NftMintResponse,
-} from "../types/underdog.ts";
-import resend from "../services/resend.ts";
-import { DEANSLIST_EMAIL } from "../constants/EMAIL.ts";
-import type { SphereWebhookResponse } from "../types/spherepay.ts";
-import { BUSINESS_VISA_PAYMENT_LINK_ID } from "../constants/SPHERE_PAY.ts";
+} from "../types/underdog.js";
+import resend from "../services/resend.js";
+import { DEANSLIST_EMAIL } from "../constants/EMAIL.js";
+import type { SphereWebhookResponse } from "../types/spherepay.js";
+import { BUSINESS_VISA_PAYMENT_LINK_ID } from "../constants/SPHERE_PAY.js";
 
 export const acceptApplicant = async (req: Request, res: Response) => {
     try {

@@ -1,7 +1,7 @@
 import { connect } from "@planetscale/database";
 import { drizzle } from "drizzle-orm/planetscale-serverless";
 
-import env from "../env/index.ts";
+import env from "../env/index.js";
 
 // create the connection
 const connection = connect({

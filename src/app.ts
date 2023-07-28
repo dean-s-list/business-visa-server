@@ -2,8 +2,8 @@ import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 // import rateLimit from "express-rate-limit";
-import routes from "./routes/v1/index.ts";
-import { handleNotFound, successHandler } from "./utils/api.ts";
+import routes from "./routes/v1/index.js";
+import { handleNotFound, successHandler } from "./utils/api.js";
 
 const app = express();
 

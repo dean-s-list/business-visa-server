@@ -3,7 +3,7 @@ import {
     acceptApplicant,
     mintApplicantVisa,
     renewVisa,
-} from "../../controllers/applicants.controller.ts";
+} from "../../controllers/applicants.controller.js";
 
 const router = express.Router();
 

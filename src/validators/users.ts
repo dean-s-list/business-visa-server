@@ -1,5 +1,5 @@
 import { z } from "zod";
-import USER_ROLES from "../constants/USER_ROLES.ts";
+import USER_ROLES from "../constants/USER_ROLES.js";
 
 export const getUserQueryValidator = z.object({
     secret: z.string().nonempty(),

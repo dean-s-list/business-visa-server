@@ -1,4 +1,4 @@
-import type { ApiResponseType } from "../types/index.ts";
+import type { ApiResponseType } from "../types/index.js";
 import type { Response } from "express";
 
 export const apiResponse = ({ success, message, result }: ApiResponseType) => {

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import env from "../env/index.ts";
+import env from "../env/index.js";
 
 const underdogApiEndpoint =
     env.SOLANA_NETWORK === "mainnet-beta"

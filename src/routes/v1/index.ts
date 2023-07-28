@@ -1,6 +1,6 @@
 import express from "express";
-import applicantsRoutes from "./applicants.route.ts";
-import usersRoutes from "./users.route.ts";
+import applicantsRoutes from "./applicants.route.js";
+import usersRoutes from "./users.route.js";
 
 const router = express.Router();
 

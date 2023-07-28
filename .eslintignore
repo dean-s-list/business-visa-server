@@ -1,1 +1,4 @@
+node_modules
+dist
 src/db/migrations
+drizzle.config.ts

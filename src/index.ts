@@ -1,8 +1,8 @@
-import app from "./app.ts";
-import verifyClaimStatusJob from "./crons/verifyClaimStatus.ts";
-import verifyExpireStatusJob from "./crons/verifyExpireStatus.ts";
-import env from "./env/index.ts";
-import { logToConsole } from "./utils/general.ts";
+import app from "./app.js";
+import verifyClaimStatusJob from "./crons/verifyClaimStatus.js";
+import verifyExpireStatusJob from "./crons/verifyExpireStatus.js";
+import env from "./env/index.js";
+import { logToConsole } from "./utils/general.js";
 
 const port = env.PORT;
 
