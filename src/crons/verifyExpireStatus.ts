@@ -75,10 +75,7 @@ const verifyExpireStatus = async () => {
                     text: `Your business visa nft has been expired please renew using this link! ${BUSINESS_VISA_PAYMENT_LINK_URL}`,
                 });
 
-                // logToConsole(
-                //     "nft claimed successfully for applicant id",
-                //     user.id
-                // );
+                console.log("sent expire email");
             } catch (error) {
                 logErrorToConsole(
                     "Something went wrong to update nft status for user id",
@@ -87,9 +84,9 @@ const verifyExpireStatus = async () => {
             }
         }
 
-        logToConsole("verifyClaimStatusJob completed successfully!");
+        logToConsole("verifyExpireStatusJob completed successfully!");
     } catch (error) {
-        logErrorToConsole("verifyClaimStatusJob error =>", error);
+        logErrorToConsole("verifyExpireStatusJob error =>", error);
     }
 };
 
