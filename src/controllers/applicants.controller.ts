@@ -29,6 +29,8 @@ import { BUSINESS_VISA_PAYMENT_LINK_ID } from "../constants/SPHERE_PAY.js";
 
 export const acceptApplicant = async (req: Request, res: Response) => {
     try {
+        logToConsole("/acceptApplicant req.body", req.body);
+
         const bodyValidationResult = acceptApplicantBodyValidator.safeParse(
             req.body
         );
@@ -46,6 +48,11 @@ export const acceptApplicant = async (req: Request, res: Response) => {
             applicant: { walletAddress, name, email, discordId, country },
         } = bodyValidationResult.data;
 
+        logToConsole(
+            "/acceptApplicant body validated",
+            bodyValidationResult.data
+        );
+
         if (secret !== env.APP_SECRET) {
             logErrorToConsole(
                 "/acceptApplicant error 401 =>",
@@ -53,6 +60,8 @@ export const acceptApplicant = async (req: Request, res: Response) => {
             );
             return handleApiAuthError(res);
         }
+
+        logToConsole("/acceptApplicant adding applicant to db");
 
         const dbRes = await db.insert(acceptedApplicantsTable).values({
             walletAddress,
@@ -62,6 +71,10 @@ export const acceptApplicant = async (req: Request, res: Response) => {
             country,
         });
 
+        logToConsole("/acceptApplicant applicant added to db", dbRes.insertId);
+
+        logToConsole("/acceptApplicant send qstash message to mint visa");
+
         const { messageId } = await qstashClient.publishJSON({
             topic: "mint-visa",
             body: {
@@ -69,6 +82,8 @@ export const acceptApplicant = async (req: Request, res: Response) => {
                 applicantId: dbRes.insertId,
             },
         });
+
+        logToConsole("/acceptApplicant qstash message sent", messageId);
 
         return res
             .status(200)
