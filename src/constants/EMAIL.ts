@@ -1,1 +1,1 @@
-export const DEANSLIST_EMAIL = "dao@deanslist.services";
+export const DEANSLIST_EMAIL = "Dean's List DAO <dao@deanslist.services>";
