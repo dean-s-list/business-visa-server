@@ -24,13 +24,12 @@ const envSchema = z.object({
     // Underdog
     UNDERDOG_API_KEY: z.string().nonempty(),
 
-    // qstash
-    QSTASH_URL: z.string().url(),
+    // Qstash
     QSTASH_TOKEN: z.string().nonempty(),
     QSTASH_CURRENT_SIGNING_KEY: z.string().nonempty(),
     QSTASH_NEXT_SIGNING_KEY: z.string().nonempty(),
 
-    // F Sphere
+    // Sphere
     SPHERE_PAYMENT_SUCCESS_WEBHOOK_SECRET: z.string().nonempty(),
 });
 
