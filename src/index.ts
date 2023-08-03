@@ -11,11 +11,11 @@ app.listen(port, () => {
 
     verifyClaimStatusJob.start();
     logToConsole(
-        "Scheduled job to verify claim status which run every 10 minutes"
+        "Scheduled job to verify claim status which run every 5 minutes"
     );
 
     verifyExpireStatusJob.start();
     logToConsole(
-        "Scheduled job to verify expire status which run every 20 minutes"
+        "Scheduled job to verify expire status which run every 10 minutes"
     );
 });
