@@ -71,3 +71,47 @@ export const getUser = async (req: Request, res: Response) => {
         return handleApiRouteError(res, error);
     }
 };
+
+export const getUsers = async (req: Request, res: Response) => {
+    try {
+        const queryValidationResult = getUserQueryValidator.safeParse(
+            req.query
+        );
+
+        if (!queryValidationResult.success) {
+            logErrorToConsole(
+                "/getUsers error 400 =>",
+                queryValidationResult.error
+            );
+            return handleApiClientError(res);
+        }
+
+        const { secret, userType } = queryValidationResult.data;
+
+        if (secret !== env.APP_SECRET) {
+            logErrorToConsole(
+                "/getUsers error 401 =>",
+                `Secret is not valid ${secret}`
+            );
+            return handleApiAuthError(res);
+        }
+
+        let users = null;
+
+        if (userType !== undefined) {
+            users = await db
+                .select()
+                .from(usersTable)
+                .where(eq(usersTable.role, userType));
+        } else {
+            users = await db.select().from(usersTable);
+        }
+
+        return res
+            .status(200)
+            .json(successHandler(users, "Users fetched successfully"));
+    } catch (error) {
+        logErrorToConsole("/getUsers error 500 =>", error);
+        return handleApiRouteError(res, error);
+    }
+};
