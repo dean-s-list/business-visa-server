@@ -13,7 +13,7 @@ import env from "../env/index.js";
 import qstashClient from "../services/qstash.js";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
-import { addDays } from "date-fns";
+import { addDays, format } from "date-fns";
 import underdogApiInstance from "../services/underdog.js";
 import { UNDERDOG_BUSINESS_VISA_PROJECT_ID } from "../constants/UNDERDOG.js";
 import VISA_STATUS from "../constants/VISA_STATUS.js";
@@ -191,8 +191,8 @@ export const mintApplicantVisa = async (req: Request, res: Response) => {
             image: bvImageUrl,
             attributes: {
                 status: VISA_STATUS.ACTIVE,
-                issuedAt: issueDate.getTime().toString(),
-                expiresAt: expireDate.getTime().toString(),
+                issuedAt: format(issueDate, "dd MMMM yyyy hh:mm a"),
+                expiresAt: format(expireDate, "dd MMMM yyyy hh:mm a"),
             },
             receiverAddress: applicant.walletAddress,
         };
@@ -325,8 +325,11 @@ export const renewVisa = async (req: Request, res: Response) => {
             {
                 image: bvImageUrl,
                 attributes: {
-                    issuedAt: user.nftIssuedAt?.getTime().toString(),
-                    expiresAt: newExpireDate.getTime().toString(),
+                    issuedAt: format(
+                        user.nftIssuedAt ?? new Date(),
+                        "dd MMMM yyyy hh:mm a"
+                    ),
+                    expiresAt: format(newExpireDate, "dd MMMM yyyy hh:mm a"),
                     status: VISA_STATUS.ACTIVE,
                 },
             }

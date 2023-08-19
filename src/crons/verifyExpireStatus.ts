@@ -10,6 +10,7 @@ import type { NftDetails } from "../types/underdog.js";
 import VISA_STATUS from "../constants/VISA_STATUS.js";
 import { generateBusinessVisaImage } from "../services/bv.js";
 import { sendVisaExpiredEmail } from "../services/emails.js";
+import { format } from "date-fns";
 
 const verifyExpireStatus = async () => {
     try {
@@ -56,8 +57,14 @@ const verifyExpireStatus = async () => {
                     {
                         image: bvImageUrl,
                         attributes: {
-                            issuedAt: user.nftIssuedAt?.getTime().toString(),
-                            expiresAt: user.nftExpiresAt?.getTime().toString(),
+                            issuedAt: format(
+                                user.nftIssuedAt ?? new Date(),
+                                "dd MMMM yyyy hh:mm a"
+                            ),
+                            expiresAt: format(
+                                user.nftExpiresAt ?? new Date(),
+                                "dd MMMM yyyy hh:mm a"
+                            ),
                             status: VISA_STATUS.EXPIRED,
                         },
                     }
