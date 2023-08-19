@@ -11,6 +11,7 @@ import type { NftDetails } from "../types/underdog.js";
 import resend from "../services/resend.js";
 import VISA_STATUS from "../constants/VISA_STATUS.js";
 import { BUSINESS_VISA_PAYMENT_LINK_URL } from "../constants/SPHERE_PAY.js";
+import { generateBusinessVisaImage } from "../services/bv.js";
 
 const verifyExpireStatus = async () => {
     try {
@@ -41,9 +42,21 @@ const verifyExpireStatus = async () => {
                     throw new Error(`No nft id found for user id ${user.id}`);
                 }
 
+                const bvImageUrl = await generateBusinessVisaImage({
+                    walletAddress: user.walletAddress,
+                    name: user.name ?? "Dean's List DAO Member",
+                    status: "Expired",
+                    earnings: "0",
+                });
+
+                if (!bvImageUrl) {
+                    throw new Error("Error generating business visa image!");
+                }
+
                 const nftUpdateResponse = await underdogApiInstance.patch(
                     `/v2/projects/n/${UNDERDOG_BUSINESS_VISA_PROJECT_ID}/nfts/${user.nftId}`,
                     {
+                        image: bvImageUrl,
                         attributes: {
                             issuedAt: user.nftIssuedAt?.getTime().toString(),
                             expiresAt: user.nftExpiresAt?.getTime().toString(),

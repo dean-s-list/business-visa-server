@@ -26,6 +26,7 @@ import resend from "../services/resend.js";
 import { DEANSLIST_EMAIL } from "../constants/EMAIL.js";
 import type { SphereWebhookResponse } from "../types/spherepay.js";
 import { BUSINESS_VISA_PAYMENT_LINK_ID } from "../constants/SPHERE_PAY.js";
+import { generateBusinessVisaImage } from "../services/bv.js";
 
 export const acceptApplicant = async (req: Request, res: Response) => {
     try {
@@ -167,6 +168,17 @@ export const mintApplicantVisa = async (req: Request, res: Response) => {
             throw new Error("Error fetching nfts minted count!");
         }
 
+        const bvImageUrl = await generateBusinessVisaImage({
+            walletAddress: applicant.walletAddress,
+            name: applicant.name ?? "Dean's List DAO Member",
+            status: "Active",
+            earnings: "0",
+        });
+
+        if (!bvImageUrl) {
+            throw new Error("Error generating business visa image!");
+        }
+
         const newNftIssueNumber = nftMintedCount + 1;
 
         const nftMetadata = {
@@ -174,7 +186,7 @@ export const mintApplicantVisa = async (req: Request, res: Response) => {
             description:
                 "Keep this active to gain access to USDC earning opportunities.",
             symbol: "DLBV",
-            image: "https://dev.updg8.com/imgdata/9HdPsLjMBUW8fQTp314kg4LoiqGxQqvCxKk6uhHttjVp",
+            image: bvImageUrl,
             attributes: {
                 status: VISA_STATUS.ACTIVE,
                 issuedAt: issueDate.getTime().toString(),
@@ -290,9 +302,21 @@ export const renewVisa = async (req: Request, res: Response) => {
             throw new Error(`No nft id found for user id ${user.id}`);
         }
 
+        const bvImageUrl = await generateBusinessVisaImage({
+            walletAddress: user.walletAddress,
+            name: user.name ?? "Dean's List DAO Member",
+            status: "Active",
+            earnings: "0",
+        });
+
+        if (!bvImageUrl) {
+            throw new Error("Error generating business visa image!");
+        }
+
         const nftUpdateResponse = await underdogApiInstance.patch(
             `/v2/projects/n/${UNDERDOG_BUSINESS_VISA_PROJECT_ID}/nfts/${user.nftId}`,
             {
+                image: bvImageUrl,
                 attributes: {
                     issuedAt: user.nftIssuedAt?.getTime().toString(),
                     expiresAt: newExpireDate.getTime().toString(),

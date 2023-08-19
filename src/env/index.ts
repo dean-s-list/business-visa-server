@@ -9,6 +9,7 @@ const envSchema = z.object({
         .default("8080")
         .transform((val) => parseInt(val)),
     APP_SECRET: z.string().nonempty(),
+    BV_GENERATION_URL: z.string().url(),
 
     // Solana
     SOLANA_NETWORK: z.union([z.literal("mainnet-beta"), z.literal("devnet")]),
@@ -31,6 +32,12 @@ const envSchema = z.object({
 
     // Sphere
     SPHERE_PAYMENT_SUCCESS_WEBHOOK_SECRET: z.string().nonempty(),
+
+    // ImageKit
+    IMAGEKIT_URL: z.string().nonempty(),
+    IMAGEKIT_API_KEY: z.string().nonempty(),
+    IMAGEKIT_API_SECRET: z.string().nonempty(),
+    IMAGEKIT_ENV: z.union([z.literal("prod"), z.literal("dev")]),
 });
 
 const parseEnv = () => {
