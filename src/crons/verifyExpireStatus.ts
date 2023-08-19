@@ -2,16 +2,14 @@ import cron from "node-cron";
 import { logErrorToConsole, logToConsole } from "../utils/general.js";
 
 import { and, eq, lte } from "drizzle-orm";
-import { DEANSLIST_EMAIL } from "../constants/EMAIL.js";
 import { UNDERDOG_BUSINESS_VISA_PROJECT_ID } from "../constants/UNDERDOG.js";
 import db from "../db/index.js";
 import { usersTable } from "../db/schema/index.js";
 import underdogApiInstance from "../services/underdog.js";
 import type { NftDetails } from "../types/underdog.js";
-import resend from "../services/resend.js";
 import VISA_STATUS from "../constants/VISA_STATUS.js";
-import { BUSINESS_VISA_PAYMENT_LINK_URL } from "../constants/SPHERE_PAY.js";
 import { generateBusinessVisaImage } from "../services/bv.js";
+import { sendVisaExpiredEmail } from "../services/emails.js";
 
 const verifyExpireStatus = async () => {
     try {
@@ -81,12 +79,14 @@ const verifyExpireStatus = async () => {
                     })
                     .where(eq(usersTable.id, user.id));
 
-                await resend.sendEmail({
-                    from: DEANSLIST_EMAIL,
+                const emailId = await sendVisaExpiredEmail({
                     to: user.email,
                     subject: "Your business visa has been expired!",
-                    text: `Your business visa nft has been expired please renew using this link! ${BUSINESS_VISA_PAYMENT_LINK_URL}`,
                 });
+
+                if (!emailId) {
+                    throw new Error("Error sending visa expired email!");
+                }
 
                 console.log("sent expire email");
             } catch (error) {
@@ -104,7 +104,7 @@ const verifyExpireStatus = async () => {
 };
 
 // it runs every 10 minutes
-const verifyExpireStatusJob = cron.schedule("*/10 * * * *", verifyExpireStatus);
+const verifyExpireStatusJob = cron.schedule("*/2 * * * *", verifyExpireStatus);
 
 // for testing it runs every 1 minute
 // const verifyExpireStatusJob = cron.schedule("*/1 * * * *", verifyExpireStatus);

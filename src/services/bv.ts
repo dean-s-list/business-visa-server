@@ -15,7 +15,9 @@ export const generateBusinessVisaImage = async ({
     earnings: string;
 }) => {
     try {
-        const bvImageGenerationUrl = new URL(env.BV_GENERATION_URL);
+        const bvImageGenerationUrl = new URL(
+            `${env.FRONTEND_API_URL}/generate-bv`
+        );
 
         bvImageGenerationUrl.searchParams.append("name", name);
 

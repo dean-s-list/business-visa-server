@@ -9,7 +9,7 @@ const envSchema = z.object({
         .default("8080")
         .transform((val) => parseInt(val)),
     APP_SECRET: z.string().nonempty(),
-    BV_GENERATION_URL: z.string().url(),
+    FRONTEND_API_URL: z.string().url(),
 
     // Solana
     SOLANA_NETWORK: z.union([z.literal("mainnet-beta"), z.literal("devnet")]),

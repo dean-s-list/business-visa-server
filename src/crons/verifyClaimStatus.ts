@@ -2,14 +2,15 @@ import cron from "node-cron";
 import { logErrorToConsole, logToConsole } from "../utils/general.js";
 
 import { and, eq, isNotNull } from "drizzle-orm";
-import { DEANSLIST_EMAIL } from "../constants/EMAIL.js";
+
 import { UNDERDOG_BUSINESS_VISA_PROJECT_ID } from "../constants/UNDERDOG.js";
 import db from "../db/index.js";
 import { acceptedApplicantsTable, usersTable } from "../db/schema/index.js";
 import underdogApiInstance from "../services/underdog.js";
 import type { NftDetails } from "../types/underdog.js";
-import resend from "../services/resend.js";
+
 import VISA_STATUS from "../constants/VISA_STATUS.js";
+import { sendVisaClaimedEmail } from "../services/emails.js";
 
 const verifyClaimStatus = async () => {
     try {
@@ -77,12 +78,14 @@ const verifyClaimStatus = async () => {
                         });
                     });
 
-                    await resend.sendEmail({
-                        from: DEANSLIST_EMAIL,
+                    const emailId = await sendVisaClaimedEmail({
                         to: applicant.email,
                         subject: "Thanks for claiming your business visa!",
-                        text: `Your business visa nft has been successfully claimed!`,
                     });
+
+                    if (!emailId) {
+                        throw new Error("Error sending visa claimed email!");
+                    }
 
                     logToConsole(
                         "nft claimed successfully for applicant id",
@@ -104,7 +107,7 @@ const verifyClaimStatus = async () => {
 };
 
 // it runs every 5 minutes
-const verifyClaimStatusJob = cron.schedule("*/5 * * * *", verifyClaimStatus);
+const verifyClaimStatusJob = cron.schedule("*/1 * * * *", verifyClaimStatus);
 
 // for testing it runs every 1 minute
 // const verifyClaimStatusJob = cron.schedule("*/1 * * * *", verifyClaimStatus);

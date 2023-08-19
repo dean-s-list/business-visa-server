@@ -22,11 +22,13 @@ import type {
     NftDetails,
     NftMintResponse,
 } from "../types/underdog.js";
-import resend from "../services/resend.js";
-import { DEANSLIST_EMAIL } from "../constants/EMAIL.js";
 import type { SphereWebhookResponse } from "../types/spherepay.js";
 import { BUSINESS_VISA_PAYMENT_LINK_ID } from "../constants/SPHERE_PAY.js";
 import { generateBusinessVisaImage } from "../services/bv.js";
+import {
+    sendVisaAcceptedEmail,
+    sendVisaRenewedEmail,
+} from "../services/emails.js";
 
 export const acceptApplicant = async (req: Request, res: Response) => {
     try {
@@ -230,16 +232,21 @@ export const mintApplicantVisa = async (req: Request, res: Response) => {
 
         logToConsole("sending claim email");
 
-        await resend.sendEmail({
+        const emailId = await sendVisaAcceptedEmail({
             to: applicant.email,
-            from: DEANSLIST_EMAIL,
             subject: "Your Business Visa is ready!",
-            text: `Your Business Visa is ready! Claim it here: ${underdogClaimLink}`,
+            businessVisaImage: bvImageUrl,
+            claimLink: underdogClaimLink,
         });
+
+        if (!emailId) {
+            throw new Error("Error sending claim email!");
+        }
 
         return res.status(200).json(
             successHandler(
                 {
+                    emailId,
                     nftClaimLink: underdogClaimLink,
                     nftMintAddress: nftMintResponseData.mintAddress,
                 },
@@ -341,12 +348,14 @@ export const renewVisa = async (req: Request, res: Response) => {
             })
             .where(eq(usersTable.email, userEmail));
 
-        await resend.sendEmail({
-            from: DEANSLIST_EMAIL,
+        const emailId = await sendVisaRenewedEmail({
             to: user.email,
             subject: "Your business visa has been renewed!",
-            text: `Thank you for renewing your business visa!`,
         });
+
+        if (!emailId) {
+            throw new Error("Error sending visa renewed email!");
+        }
 
         return res.status(200).json(
             successHandler(
