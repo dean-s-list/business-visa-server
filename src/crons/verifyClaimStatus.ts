@@ -107,7 +107,7 @@ const verifyClaimStatus = async () => {
 };
 
 // it runs every 5 minutes
-const verifyClaimStatusJob = cron.schedule("*/1 * * * *", verifyClaimStatus);
+const verifyClaimStatusJob = cron.schedule("*/5 * * * *", verifyClaimStatus);
 
 // for testing it runs every 1 minute
 // const verifyClaimStatusJob = cron.schedule("*/1 * * * *", verifyClaimStatus);

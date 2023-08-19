@@ -104,7 +104,7 @@ const verifyExpireStatus = async () => {
 };
 
 // it runs every 10 minutes
-const verifyExpireStatusJob = cron.schedule("*/2 * * * *", verifyExpireStatus);
+const verifyExpireStatusJob = cron.schedule("*/10 * * * *", verifyExpireStatus);
 
 // for testing it runs every 1 minute
 // const verifyExpireStatusJob = cron.schedule("*/1 * * * *", verifyExpireStatus);
