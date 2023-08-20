@@ -7,6 +7,8 @@ import { logToConsole } from "./utils/general.js";
 const port = env.PORT;
 
 app.listen(port, () => {
+    process.env.TZ = "Etc/UTC";
+
     console.log(`Server started on port ${port}`);
 
     verifyClaimStatusJob.start();
