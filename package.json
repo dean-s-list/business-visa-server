@@ -24,6 +24,7 @@
         "@planetscale/database": "^1.10.0",
         "@solana/web3.js": "^1.78.1",
         "@upstash/qstash": "^0.3.6",
+        "airtable": "^0.12.2",
         "axios": "^1.4.0",
         "cors": "^2.8.5",
         "date-fns": "^2.30.0",

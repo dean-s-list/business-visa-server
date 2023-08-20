@@ -39,6 +39,9 @@ const envSchema = z.object({
     IMAGEKIT_API_KEY: z.string().nonempty(),
     IMAGEKIT_API_SECRET: z.string().nonempty(),
     IMAGEKIT_ENV: z.union([z.literal("prod"), z.literal("dev")]),
+
+    // Airtable
+    AIRTABLE_TOKEN: z.string().nonempty(),
 });
 
 const parseEnv = () => {

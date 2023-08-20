@@ -1,4 +1,5 @@
 import app from "./app.js";
+import autoApproveApplicationsJob from "./crons/autoApproveApplications.js";
 import verifyClaimStatusJob from "./crons/verifyClaimStatus.js";
 import verifyExpireStatusJob from "./crons/verifyExpireStatus.js";
 import env from "./env/index.js";
@@ -17,5 +18,10 @@ app.listen(port, () => {
     verifyExpireStatusJob.start();
     logToConsole(
         "Scheduled job to verify expire status which run every 10 minutes"
+    );
+
+    autoApproveApplicationsJob.start();
+    logToConsole(
+        "Scheduled job to approve all applications which run every 1 minute"
     );
 });
