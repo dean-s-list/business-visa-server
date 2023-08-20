@@ -10,6 +10,7 @@ const envSchema = z.object({
         .transform((val) => parseInt(val)),
     APP_SECRET: z.string().nonempty(),
     FRONTEND_API_URL: z.string().url(),
+    TZ: z.string().nonempty(),
 
     // Solana
     SOLANA_NETWORK: z.union([z.literal("mainnet-beta"), z.literal("devnet")]),
