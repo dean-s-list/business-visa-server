@@ -20,8 +20,10 @@ app.listen(port, () => {
         "Scheduled job to verify expire status which run every 10 minutes"
     );
 
-    autoApproveApplicationsJob.start();
-    logToConsole(
-        "Scheduled job to approve all applications which run every 1 minute"
-    );
+    if (env.AUTO_APPROVE_APPLICATIONS) {
+        autoApproveApplicationsJob.start();
+        logToConsole(
+            "Scheduled job to approve all applications which run every 1 minute"
+        );
+    }
 });

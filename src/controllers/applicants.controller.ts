@@ -79,7 +79,7 @@ export const acceptApplicant = async (req: Request, res: Response) => {
         logToConsole("/acceptApplicant send qstash message to mint visa");
 
         const { messageId } = await qstashClient.publishJSON({
-            topic: "mint-visa",
+            topic: env.QSTASH_MINT_VISA_TOPIC,
             body: {
                 secret: env.APP_SECRET,
                 applicantId: dbRes.insertId,

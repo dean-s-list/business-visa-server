@@ -48,7 +48,7 @@ const autoApproveApplications = async () => {
                         });
 
                     const { messageId } = await qstashClient.publishJSON({
-                        topic: "mint-visa",
+                        topic: env.QSTASH_MINT_VISA_TOPIC,
                         body: {
                             secret: env.APP_SECRET,
                             applicantId: dbRes.insertId,
