@@ -12,6 +12,8 @@ import airtable from "../services/airtable.js";
 import type { Applicant } from "../types/applicant.js";
 import qstashClient from "../services/qstash.js";
 import env from "../env/index.js";
+import { z } from "zod";
+import { isValidSolanaAddress } from "../utils/solana.js";
 
 const autoApproveApplications = async () => {
     try {
@@ -36,6 +38,28 @@ const autoApproveApplications = async () => {
                 if (applicant.fields.status === "pending") {
                     const applicantData =
                         applicant.fields as unknown as Applicant;
+
+                    if (
+                        !z.string().email().safeParse(applicantData.email)
+                            .success
+                    ) {
+                        throw new Error(
+                            `Invalid email address for applicant id => ${applicant.id}`
+                        );
+                    }
+
+                    if (
+                        !z
+                            .string()
+                            .nonempty()
+                            .refine((value) => isValidSolanaAddress(value))
+                            .safeParse(applicantData.solana_wallet_address)
+                            .success
+                    ) {
+                        throw new Error(
+                            `Invalid wallet address for applicant id => ${applicant.id}`
+                        );
+                    }
 
                     const dbRes = await db
                         .insert(acceptedApplicantsTable)
