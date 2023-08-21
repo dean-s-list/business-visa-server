@@ -25,5 +25,7 @@ app.listen(port, () => {
         logToConsole(
             "Scheduled job to approve all applications which run every 1 minute"
         );
+    } else {
+        autoApproveApplicationsJob.stop();
     }
 });
