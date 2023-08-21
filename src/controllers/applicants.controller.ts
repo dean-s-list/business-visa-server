@@ -213,7 +213,7 @@ export const mintApplicantVisa = async (req: Request, res: Response) => {
         const underdogClaimLink = `https://claim.underdogprotocol.com/nfts/${
             nftMintResponseData.mintAddress
         }?network=${
-            env.SOLANA_NETWORK === "mainnet-beta" ? "MAINNET_BETA" : "DEVNET"
+            env.SOLANA_NETWORK === "mainnet-beta" ? "MAINNET" : "DEVNET"
         }`;
 
         logToConsole("saving user nft data in db for applicantId", applicantId);
