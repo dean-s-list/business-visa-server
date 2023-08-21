@@ -166,7 +166,7 @@ export const mintApplicantVisa = async (req: Request, res: Response) => {
 
         const nftMintedCount = getAllNftsResponseData?.totalPages;
 
-        if (!nftMintedCount) {
+        if (nftMintedCount < 0) {
             throw new Error("Error fetching nfts minted count!");
         }
 
