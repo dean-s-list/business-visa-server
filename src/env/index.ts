@@ -11,6 +11,9 @@ const envSchema = z.object({
     APP_SECRET: z.string().nonempty(),
     FRONTEND_API_URL: z.string().url(),
     TZ: z.string().nonempty(),
+    AUTO_APPROVE_APPLICATIONS: z
+        .union([z.literal("true"), z.literal("false")])
+        .transform((val) => val === "true"),
 
     // Solana
     SOLANA_NETWORK: z.union([z.literal("mainnet-beta"), z.literal("devnet")]),
@@ -30,9 +33,14 @@ const envSchema = z.object({
     QSTASH_TOKEN: z.string().nonempty(),
     QSTASH_CURRENT_SIGNING_KEY: z.string().nonempty(),
     QSTASH_NEXT_SIGNING_KEY: z.string().nonempty(),
+    QSTASH_MINT_VISA_TOPIC: z.union([
+        z.literal("mint-visa"),
+        z.literal("mint-visa-dev"),
+    ]),
 
     // Sphere
     SPHERE_PAYMENT_SUCCESS_WEBHOOK_SECRET: z.string().nonempty(),
+    BUSINESS_VISA_PAYMENT_LINK_ID: z.string().nonempty(),
 
     // ImageKit
     IMAGEKIT_URL: z.string().nonempty(),
