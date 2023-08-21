@@ -50,6 +50,8 @@ const envSchema = z.object({
 
     // Airtable
     AIRTABLE_TOKEN: z.string().nonempty(),
+    AIRTABLE_BUSINESS_VISA_APPLICANTS_BASE_ID: z.string().nonempty(),
+    AIRTABLE_BUSINESS_VISA_APPLICANTS_PROJECT_ID: z.string().nonempty(),
 });
 
 const parseEnv = () => {
