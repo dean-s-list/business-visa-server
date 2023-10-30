@@ -35,6 +35,7 @@ export const usersTable = mysqlTable(
         nftRenewedAt: timestamp("nftRenewedAt"),
         createdAt: timestamp("createdAt").defaultNow(),
         updatedAt: timestamp("updatedAt").onUpdateNow(),
+        earnings: int("earnings").default(0),
     },
     (users) => ({
         addressIndex: uniqueIndex("address_idx").on(users.walletAddress),

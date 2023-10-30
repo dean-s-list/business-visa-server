@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `earnings` int DEFAULT 0;
