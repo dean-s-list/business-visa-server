@@ -43,6 +43,13 @@
       "when": 1690398981716,
       "tag": "0005_deep_domino",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1698671947135,
+      "tag": "0006_dizzy_crusher_hogan",
+      "breakpoints": true
     }
   ]
 }
