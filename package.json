@@ -19,7 +19,8 @@
         "db:studio": "yarn drizzle-kit studio",
         "db:generate": "yarn drizzle-kit generate:mysql",
         "db:drop": "yarn drizzle-kit drop",
-        "scripts:update-earnings": "yarn ts-node --esm ./src/scripts/updateBusinessVisaHoldersEarnings.ts"
+        "scripts:update-earnings": "yarn ts-node --esm ./src/scripts/updateBusinessVisaHoldersEarnings.ts",
+        "scripts:update-expiry": "yarn ts-node --esm ./src/scripts/updateBusinessVisaHolderExpiryDate.ts"
     },
     "dependencies": {
         "@planetscale/database": "^1.10.0",

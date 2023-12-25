@@ -1,6 +1,9 @@
 import { logErrorToConsole, logToConsole } from "../utils/general.js";
 import type { Request, Response } from "express";
-import { acceptApplicantBodyValidator } from "../validators/applicants.js";
+import {
+    acceptApplicantBodyValidator,
+    postApplicationsBodyValidator,
+} from "../validators/applicants.js";
 import {
     handleApiAuthError,
     handleApiClientError,
@@ -8,11 +11,15 @@ import {
     successHandler,
 } from "../utils/api.js";
 import db from "../db/index.js";
-import { acceptedApplicantsTable, usersTable } from "../db/schema/index.js";
+import {
+    acceptedApplicantsTable,
+    applicantsTable,
+    usersTable,
+} from "../db/schema/index.js";
 import env from "../env/index.js";
 import qstashClient from "../services/qstash.js";
 import { z } from "zod";
-import { eq } from "drizzle-orm";
+import { desc, eq, or } from "drizzle-orm";
 import { addDays, format } from "date-fns";
 import underdogApiInstance from "../services/underdog.js";
 import { UNDERDOG_BUSINESS_VISA_PROJECT_ID } from "../constants/UNDERDOG.js";
@@ -30,6 +37,100 @@ import {
     sendVisaRenewedEmail,
 } from "../services/emails.js";
 
+export const getApplications = async (req: Request, res: Response) => {
+    try {
+        const secret = req.headers.authorization;
+
+        if (!secret || secret !== env.APP_SECRET) {
+            return handleApiAuthError(res);
+        }
+
+        const applications = await db
+            .select()
+            .from(applicantsTable)
+            .orderBy(desc(applicantsTable.createdAt));
+
+        return res
+            .status(200)
+            .json(
+                successHandler(
+                    applications,
+                    "Applications fetched successfully"
+                )
+            );
+    } catch (error) {
+        logErrorToConsole("/getApplications error 500 =>", error);
+        return handleApiRouteError(res, error);
+    }
+};
+
+export const postApplication = async (req: Request, res: Response) => {
+    try {
+        logToConsole("/postApplication req.body", req.body);
+
+        const bodyValidationResult = postApplicationsBodyValidator.safeParse(
+            req.body
+        );
+
+        if (!bodyValidationResult.success) {
+            logErrorToConsole(
+                "/postApplication error 400 =>",
+                bodyValidationResult.error
+            );
+            return handleApiClientError(res);
+        }
+
+        const body = bodyValidationResult.data;
+
+        logToConsole(
+            "/postApplication body validated",
+            bodyValidationResult.data
+        );
+
+        logToConsole("/postApplication adding applicant to db");
+
+        const [applicant] = await db
+            .select()
+            .from(applicantsTable)
+            .where(
+                or(
+                    eq(applicantsTable.email, body.email),
+                    eq(applicantsTable.walletAddress, body.walletAddress)
+                )
+            );
+
+        if (applicant) {
+            let message;
+
+            if (applicant.status === "pending") {
+                message = "Your application is already pending!";
+            } else if (applicant.status === "accepted") {
+                message = "Your application have already been accepted!";
+            } else {
+                message = "Your application have already been rejected!";
+            }
+
+            return handleApiClientError(res, message);
+        }
+
+        const dbRes = await db.insert(applicantsTable).values(body);
+
+        logToConsole("/postApplication applicant added to db", dbRes.insertId);
+
+        return res.status(200).json(
+            successHandler(
+                {
+                    applicantId: dbRes.insertId,
+                },
+                "Application submitted successfully"
+            )
+        );
+    } catch (error) {
+        logErrorToConsole("/postApplication error 500 =>", error);
+        return handleApiRouteError(res, error);
+    }
+};
+
 export const acceptApplicant = async (req: Request, res: Response) => {
     try {
         logToConsole("/acceptApplicant req.body", req.body);
@@ -46,10 +147,7 @@ export const acceptApplicant = async (req: Request, res: Response) => {
             return handleApiClientError(res);
         }
 
-        const {
-            secret,
-            applicant: { walletAddress, name, email, discordId, country },
-        } = bodyValidationResult.data;
+        const { secret, applicantId, status } = bodyValidationResult.data;
 
         logToConsole(
             "/acceptApplicant body validated",
@@ -66,15 +164,61 @@ export const acceptApplicant = async (req: Request, res: Response) => {
 
         logToConsole("/acceptApplicant adding applicant to db");
 
-        const dbRes = await db.insert(acceptedApplicantsTable).values({
-            walletAddress,
-            name,
-            email,
-            discordId,
-            country,
+        const [applicant] = await db
+            .select()
+            .from(applicantsTable)
+            .where(eq(applicantsTable.id, applicantId));
+
+        if (!applicant) {
+            throw new Error("No applicant found!");
+        }
+
+        if (applicant.status === "accepted") {
+            throw new Error("Applicant already accepted!");
+        }
+
+        if (applicant.status === "rejected") {
+            throw new Error("Applicant already rejected!");
+        }
+
+        if (status === "rejected") {
+            await db
+                .update(applicantsTable)
+                .set({
+                    status: "rejected",
+                })
+                .where(eq(applicantsTable.id, applicantId));
+
+            return res
+                .status(200)
+                .json(successHandler(null, "Applicant rejected successfully"));
+        }
+
+        const acceptedApplicantId = await db.transaction(async (trx) => {
+            const { insertId } = await trx
+                .insert(acceptedApplicantsTable)
+                .values({
+                    discordId: applicant.discordId,
+                    email: applicant.email,
+                    walletAddress: applicant.walletAddress,
+                    country: applicant.country,
+                    name: applicant.name,
+                });
+
+            await trx
+                .update(applicantsTable)
+                .set({
+                    status: "accepted",
+                })
+                .where(eq(applicantsTable.id, applicantId));
+
+            return insertId;
         });
 
-        logToConsole("/acceptApplicant applicant added to db", dbRes.insertId);
+        logToConsole(
+            "/acceptApplicant applicant added to db",
+            acceptedApplicantId
+        );
 
         logToConsole("/acceptApplicant send qstash message to mint visa");
 
@@ -82,7 +226,7 @@ export const acceptApplicant = async (req: Request, res: Response) => {
             topic: env.QSTASH_MINT_VISA_TOPIC,
             body: {
                 secret: env.APP_SECRET,
-                applicantId: dbRes.insertId,
+                applicantId: acceptedApplicantId,
             },
         });
 

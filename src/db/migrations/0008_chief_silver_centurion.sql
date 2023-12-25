@@ -1,0 +1,1 @@
+ALTER TABLE `applicants` MODIFY COLUMN `status` enum('pending','accepted','rejected') NOT NULL DEFAULT 'pending';
