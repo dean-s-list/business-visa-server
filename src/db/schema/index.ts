@@ -9,6 +9,7 @@ import {
     int,
     text,
     boolean,
+    json,
 } from "drizzle-orm/mysql-core";
 
 export const usersTable = mysqlTable(
@@ -59,6 +60,32 @@ export const acceptedApplicantsTable = mysqlTable(
         nftClaimLink: text("nftClaimLink"),
         hasClaimed: boolean("hasClaimed").default(false),
         createdAt: timestamp("createdAt").defaultNow(),
+        updatedAt: timestamp("updatedAt").onUpdateNow(),
+    },
+    (users) => ({
+        addressIndex: uniqueIndex("address_idx").on(users.walletAddress),
+        emailIndex: uniqueIndex("email_idx").on(users.email),
+    })
+);
+
+export const applicantsTable = mysqlTable(
+    "applicants",
+    {
+        id: serial("id").primaryKey().autoincrement(),
+        walletAddress: varchar("walletAddress", { length: 50 }).notNull(),
+        name: varchar("name", { length: 250 }).notNull(),
+        email: varchar("email", { length: 250 }).notNull(),
+        discordId: varchar("discordId", { length: 250 }).notNull(),
+        country: varchar("country", { length: 100 }).notNull(),
+        discovery: text("discovery").notNull(),
+        expectation: text("expectation").notNull(),
+        skills: json("skills").$type<string[]>().notNull(),
+        expectationDetails: text("expectationDetails").notNull(),
+        projectDetails: text("projectDetails"),
+        status: mysqlEnum("status", ["pending", "accepted", "rejected"])
+            .default("pending")
+            .notNull(),
+        createdAt: timestamp("createdAt").defaultNow().notNull(),
         updatedAt: timestamp("updatedAt").onUpdateNow(),
     },
     (users) => ({
