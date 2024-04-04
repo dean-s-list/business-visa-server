@@ -2,94 +2,71 @@ import cron from "node-cron";
 import { logErrorToConsole, logToConsole } from "../utils/general.js";
 
 import db from "../db/index.js";
-import { acceptedApplicantsTable } from "../db/schema/index.js";
-
 import {
-    BUSINESS_VISA_APPLICANTS_BASE_ID,
-    BUSINESS_VISA_APPLICANTS_PROJECT_ID,
-} from "../constants/AIRTABLE.js";
-import airtable from "../services/airtable.js";
-import type { Applicant } from "../types/applicant.js";
-import qstashClient from "../services/qstash.js";
+    acceptedApplicantsTable,
+    applicantsTable,
+} from "../db/schema/index.js";
+
+import { eq } from "drizzle-orm";
 import env from "../env/index.js";
-import { z } from "zod";
-import { isValidSolanaAddress } from "../utils/solana.js";
+import qstashClient from "../services/qstash.js";
 
 const autoApproveApplications = async () => {
     try {
         logToConsole("autoApproveApplicationsJob started!");
 
-        const data = await airtable
-            .base(BUSINESS_VISA_APPLICANTS_BASE_ID)
-            .table(BUSINESS_VISA_APPLICANTS_PROJECT_ID)
+        const pendingApplicants = await db
             .select()
-            .all();
+            .from(applicantsTable)
+            .where(eq(applicantsTable.status, "pending"));
 
-        if (!data) {
-            throw new Error("No data found!");
-        }
-
-        if (data.length === 0) {
-            logToConsole("No applications are pending!");
-        }
-
-        for (const applicant of data) {
+        for (const applicant of pendingApplicants) {
             try {
-                if (applicant.fields.status === "pending") {
-                    const applicantData =
-                        applicant.fields as unknown as Applicant;
+                const acceptedApplicantId = await db.transaction(
+                    async (trx) => {
+                        const { insertId } = await trx
+                            .insert(acceptedApplicantsTable)
+                            .values({
+                                discordId: applicant.discordId,
+                                email: applicant.email,
+                                walletAddress: applicant.walletAddress,
+                                country: applicant.country,
+                                name: applicant.name,
+                            });
 
-                    if (
-                        !z.string().email().safeParse(applicantData.email)
-                            .success
-                    ) {
-                        throw new Error(
-                            `Invalid email address for applicant id => ${applicant.id}`
-                        );
+                        await trx
+                            .update(applicantsTable)
+                            .set({
+                                status: "accepted",
+                            })
+                            .where(eq(applicantsTable.id, applicant.id));
+
+                        return insertId;
                     }
+                );
 
-                    if (
-                        !z
-                            .string()
-                            .nonempty()
-                            .refine((value) => isValidSolanaAddress(value))
-                            .safeParse(applicantData.solana_wallet_address)
-                            .success
-                    ) {
-                        throw new Error(
-                            `Invalid wallet address for applicant id => ${applicant.id}`
-                        );
-                    }
+                logToConsole(
+                    "/acceptApplicant applicant added to db",
+                    acceptedApplicantId
+                );
 
-                    const dbRes = await db
-                        .insert(acceptedApplicantsTable)
-                        .values({
-                            walletAddress: applicantData.solana_wallet_address,
-                            name: applicantData.name,
-                            email: applicantData.email,
-                            discordId: applicantData.discord_id,
-                            country: applicantData.country,
-                        });
+                logToConsole(
+                    "/acceptApplicant send qstash message to mint visa"
+                );
 
-                    const { messageId } = await qstashClient.publishJSON({
-                        topic: env.QSTASH_MINT_VISA_TOPIC,
-                        body: {
-                            secret: env.APP_SECRET,
-                            applicantId: dbRes.insertId,
-                        },
-                    });
+                const { messageId } = await qstashClient.publishJSON({
+                    topic: env.QSTASH_MINT_VISA_TOPIC,
+                    body: {
+                        secret: env.APP_SECRET,
+                        applicantId: acceptedApplicantId,
+                    },
+                });
 
-                    console.log("messageId", messageId);
-
-                    await airtable
-                        .base(BUSINESS_VISA_APPLICANTS_BASE_ID)
-                        .table(BUSINESS_VISA_APPLICANTS_PROJECT_ID)
-                        .update(applicant.id, { status: "accepted" });
-                }
+                logToConsole("/acceptApplicant qstash message sent", messageId);
             } catch (error) {
                 logErrorToConsole(
-                    "Something went wrong while accepting applicant id =>",
-                    applicant.id
+                    `/autoApproveApplicationsJob error -> failed to accept the applicant ${applicant.id}`,
+                    error
                 );
             }
         }
@@ -102,7 +79,7 @@ const autoApproveApplications = async () => {
 
 // it runs every 1 minutes
 const autoApproveApplicationsJob = cron.schedule(
-    "*/1 * * * *",
+    "*/10 * * * *",
     autoApproveApplications
 );
 

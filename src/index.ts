@@ -23,7 +23,7 @@ app.listen(port, () => {
     if (env.AUTO_APPROVE_APPLICATIONS) {
         autoApproveApplicationsJob.start();
         logToConsole(
-            "Scheduled job to approve all applications which run every 1 minute"
+            "Scheduled job to approve all applications which run every 10 minute"
         );
     } else {
         autoApproveApplicationsJob.stop();
