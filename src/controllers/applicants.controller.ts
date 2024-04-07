@@ -1,15 +1,10 @@
-import { logErrorToConsole, logToConsole } from "../utils/general.js";
+import { addDays, format } from "date-fns";
+import { desc, eq, or } from "drizzle-orm";
 import type { Request, Response } from "express";
-import {
-    acceptApplicantBodyValidator,
-    postApplicationsBodyValidator,
-} from "../validators/applicants.js";
-import {
-    handleApiAuthError,
-    handleApiClientError,
-    handleApiRouteError,
-    successHandler,
-} from "../utils/api.js";
+import { z } from "zod";
+import { BUSINESS_VISA_PAYMENT_LINK_ID } from "../constants/SPHERE_PAY.js";
+import { UNDERDOG_BUSINESS_VISA_PROJECT_ID } from "../constants/UNDERDOG.js";
+import VISA_STATUS from "../constants/VISA_STATUS.js";
 import db from "../db/index.js";
 import {
     acceptedApplicantsTable,
@@ -17,25 +12,30 @@ import {
     usersTable,
 } from "../db/schema/index.js";
 import env from "../env/index.js";
-import qstashClient from "../services/qstash.js";
-import { z } from "zod";
-import { desc, eq, or } from "drizzle-orm";
-import { addDays, format } from "date-fns";
-import underdogApiInstance from "../services/underdog.js";
-import { UNDERDOG_BUSINESS_VISA_PROJECT_ID } from "../constants/UNDERDOG.js";
-import VISA_STATUS from "../constants/VISA_STATUS.js";
-import type {
-    GetAllNftsResponse,
-    NftDetails,
-    NftMintResponse,
-} from "../types/underdog.js";
-import type { SphereWebhookResponse } from "../types/spherepay.js";
-import { BUSINESS_VISA_PAYMENT_LINK_ID } from "../constants/SPHERE_PAY.js";
 import { generateBusinessVisaImage } from "../services/bv.js";
 import {
     sendVisaAcceptedEmail,
     sendVisaRenewedEmail,
 } from "../services/emails.js";
+import qstashClient from "../services/qstash.js";
+import underdogApiInstance from "../services/underdog.js";
+import type { SphereWebhookResponse } from "../types/spherepay.js";
+import type {
+    GetAllNftsResponse,
+    NftDetails,
+    NftMintResponse,
+} from "../types/underdog.js";
+import {
+    handleApiAuthError,
+    handleApiClientError,
+    handleApiRouteError,
+    successHandler,
+} from "../utils/api.js";
+import { logErrorToConsole, logToConsole } from "../utils/general.js";
+import {
+    acceptApplicantBodyValidator,
+    postApplicationsBodyValidator,
+} from "../validators/applicants.js";
 
 export const getApplications = async (req: Request, res: Response) => {
     try {
@@ -113,14 +113,14 @@ export const postApplication = async (req: Request, res: Response) => {
             return handleApiClientError(res, message);
         }
 
-        const dbRes = await db.insert(applicantsTable).values(body);
+        await db.insert(applicantsTable).values(body);
 
-        logToConsole("/postApplication applicant added to db", dbRes.insertId);
+        logToConsole("/postApplication applicant added to db", body.email);
 
         return res.status(200).json(
             successHandler(
                 {
-                    applicantId: dbRes.insertId,
+                    applicantId: body.email,
                 },
                 "Application submitted successfully"
             )
@@ -194,16 +194,14 @@ export const acceptApplicant = async (req: Request, res: Response) => {
                 .json(successHandler(null, "Applicant rejected successfully"));
         }
 
-        const acceptedApplicantId = await db.transaction(async (trx) => {
-            const { insertId } = await trx
-                .insert(acceptedApplicantsTable)
-                .values({
-                    discordId: applicant.discordId,
-                    email: applicant.email,
-                    walletAddress: applicant.walletAddress,
-                    country: applicant.country,
-                    name: applicant.name,
-                });
+        await db.transaction(async (trx) => {
+            await trx.insert(acceptedApplicantsTable).values({
+                discordId: applicant.discordId,
+                email: applicant.email,
+                walletAddress: applicant.walletAddress,
+                country: applicant.country,
+                name: applicant.name,
+            });
 
             await trx
                 .update(applicantsTable)
@@ -211,14 +209,9 @@ export const acceptApplicant = async (req: Request, res: Response) => {
                     status: "accepted",
                 })
                 .where(eq(applicantsTable.id, applicantId));
-
-            return insertId;
         });
 
-        logToConsole(
-            "/acceptApplicant applicant added to db",
-            acceptedApplicantId
-        );
+        logToConsole("/acceptApplicant applicant added to db", applicantId);
 
         logToConsole("/acceptApplicant send qstash message to mint visa");
 
@@ -226,7 +219,7 @@ export const acceptApplicant = async (req: Request, res: Response) => {
             topic: env.QSTASH_MINT_VISA_TOPIC,
             body: {
                 secret: env.APP_SECRET,
-                applicantId: acceptedApplicantId,
+                applicantEmail: applicant.email,
             },
         });
 
@@ -248,9 +241,7 @@ export const mintApplicantVisa = async (req: Request, res: Response) => {
         const bodyValidationResult = z
             .object({
                 secret: z.string(),
-                applicantId: z
-                    .string()
-                    .transform((value) => parseInt(value, 10)),
+                applicantEmail: z.string().email(),
             })
             .safeParse(req.body);
 
@@ -262,7 +253,7 @@ export const mintApplicantVisa = async (req: Request, res: Response) => {
             return handleApiClientError(res);
         }
 
-        const { secret, applicantId } = bodyValidationResult.data;
+        const { secret, applicantEmail } = bodyValidationResult.data;
 
         if (secret !== env.APP_SECRET) {
             logErrorToConsole(
@@ -272,12 +263,15 @@ export const mintApplicantVisa = async (req: Request, res: Response) => {
             return handleApiAuthError(res);
         }
 
-        logToConsole("fetching data from db for applicantId", applicantId);
+        logToConsole(
+            "fetching data from db for applicantEmail",
+            applicantEmail
+        );
 
         const applicantData = await db
             .select()
             .from(acceptedApplicantsTable)
-            .where(eq(acceptedApplicantsTable.id, applicantId));
+            .where(eq(acceptedApplicantsTable.email, applicantEmail));
 
         const applicant = applicantData[0];
 
@@ -360,7 +354,10 @@ export const mintApplicantVisa = async (req: Request, res: Response) => {
             env.SOLANA_NETWORK === "mainnet-beta" ? "MAINNET" : "DEVNET"
         }`;
 
-        logToConsole("saving user nft data in db for applicantId", applicantId);
+        logToConsole(
+            "saving user nft data in db for applicantEmail",
+            applicantEmail
+        );
 
         await db
             .update(acceptedApplicantsTable)
@@ -372,7 +369,7 @@ export const mintApplicantVisa = async (req: Request, res: Response) => {
                 nftClaimLink: underdogClaimLink,
                 nftMintAddress: nftMintResponseData.mintAddress,
             })
-            .where(eq(acceptedApplicantsTable.id, applicantId));
+            .where(eq(acceptedApplicantsTable.email, applicantEmail));
 
         logToConsole("sending claim email");
 
