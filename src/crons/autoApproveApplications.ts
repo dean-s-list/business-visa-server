@@ -22,32 +22,26 @@ const autoApproveApplications = async () => {
 
         for (const applicant of pendingApplicants) {
             try {
-                const acceptedApplicantId = await db.transaction(
-                    async (trx) => {
-                        const { insertId } = await trx
-                            .insert(acceptedApplicantsTable)
-                            .values({
-                                discordId: applicant.discordId,
-                                email: applicant.email,
-                                walletAddress: applicant.walletAddress,
-                                country: applicant.country,
-                                name: applicant.name,
-                            });
+                await db.transaction(async (trx) => {
+                    await trx.insert(acceptedApplicantsTable).values({
+                        discordId: applicant.discordId,
+                        email: applicant.email,
+                        walletAddress: applicant.walletAddress,
+                        country: applicant.country,
+                        name: applicant.name,
+                    });
 
-                        await trx
-                            .update(applicantsTable)
-                            .set({
-                                status: "accepted",
-                            })
-                            .where(eq(applicantsTable.id, applicant.id));
-
-                        return insertId;
-                    }
-                );
+                    await trx
+                        .update(applicantsTable)
+                        .set({
+                            status: "accepted",
+                        })
+                        .where(eq(applicantsTable.email, applicant.email));
+                });
 
                 logToConsole(
                     "/acceptApplicant applicant added to db",
-                    acceptedApplicantId
+                    applicant.email
                 );
 
                 logToConsole(
@@ -58,7 +52,7 @@ const autoApproveApplications = async () => {
                     topic: env.QSTASH_MINT_VISA_TOPIC,
                     body: {
                         secret: env.APP_SECRET,
-                        applicantId: acceptedApplicantId,
+                        applicantEmail: applicant.email,
                     },
                 });
 

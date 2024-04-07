@@ -1,13 +1,12 @@
-import { connect } from "@planetscale/database";
-import { drizzle } from "drizzle-orm/planetscale-serverless";
-
+import { drizzle } from "drizzle-orm/mysql2";
+import { createConnection } from "mysql2";
 import env from "../env/index.js";
-import { fetch } from "undici";
 
-// create the connection
-const connection = connect({
-    url: env.DB_URL,
-    fetch,
+export const connection = createConnection({
+    uri: env.DB_URL,
+    ssl: {
+        rejectUnauthorized: false,
+    },
 });
 
 const db = drizzle(connection);
