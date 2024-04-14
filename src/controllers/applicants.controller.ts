@@ -1,7 +1,6 @@
 import { addDays, format } from "date-fns";
 import { desc, eq, or } from "drizzle-orm";
 import type { Request, Response } from "express";
-import { z } from "zod";
 import { BUSINESS_VISA_PAYMENT_LINK_ID } from "../constants/SPHERE_PAY.js";
 import { UNDERDOG_BUSINESS_VISA_PROJECT_ID } from "../constants/UNDERDOG.js";
 import VISA_STATUS from "../constants/VISA_STATUS.js";
@@ -13,18 +12,10 @@ import {
 } from "../db/schema/index.js";
 import env from "../env/index.js";
 import { generateBusinessVisaImage } from "../services/bv.js";
-import {
-    sendVisaAcceptedEmail,
-    sendVisaRenewedEmail,
-} from "../services/emails.js";
-import qstashClient from "../services/qstash.js";
+import { sendVisaRenewedEmail } from "../services/emails.js";
 import underdogApiInstance from "../services/underdog.js";
 import type { SphereWebhookResponse } from "../types/spherepay.js";
-import type {
-    GetAllNftsResponse,
-    NftDetails,
-    NftMintResponse,
-} from "../types/underdog.js";
+import type { NftDetails } from "../types/underdog.js";
 import {
     handleApiAuthError,
     handleApiClientError,
@@ -213,189 +204,16 @@ export const acceptApplicant = async (req: Request, res: Response) => {
 
         logToConsole("/acceptApplicant applicant added to db", applicantId);
 
-        logToConsole("/acceptApplicant send qstash message to mint visa");
-
-        const { messageId } = await qstashClient.publishJSON({
-            topic: env.QSTASH_MINT_VISA_TOPIC,
-            body: {
-                secret: env.APP_SECRET,
-                applicantEmail: applicant.email,
-            },
-        });
-
-        logToConsole("/acceptApplicant qstash message sent", messageId);
-
         return res
             .status(200)
             .json(
-                successHandler({ messageId }, "Applicant accepted successfully")
+                successHandler(
+                    { applicantId },
+                    "Applicant accepted successfully"
+                )
             );
     } catch (error) {
         logErrorToConsole("/acceptApplicant error 500 =>", error);
-        return handleApiRouteError(res, error);
-    }
-};
-
-export const mintApplicantVisa = async (req: Request, res: Response) => {
-    try {
-        const bodyValidationResult = z
-            .object({
-                secret: z.string(),
-                applicantEmail: z.string().email(),
-            })
-            .safeParse(req.body);
-
-        if (!bodyValidationResult.success) {
-            logErrorToConsole(
-                "/mintApplicantVisa error 400 =>",
-                bodyValidationResult.error
-            );
-            return handleApiClientError(res);
-        }
-
-        const { secret, applicantEmail } = bodyValidationResult.data;
-
-        if (secret !== env.APP_SECRET) {
-            logErrorToConsole(
-                "/mintApplicantVisa error 401 =>",
-                "Secret is not valid"
-            );
-            return handleApiAuthError(res);
-        }
-
-        logToConsole(
-            "fetching data from db for applicantEmail",
-            applicantEmail
-        );
-
-        const applicantData = await db
-            .select()
-            .from(acceptedApplicantsTable)
-            .where(eq(acceptedApplicantsTable.email, applicantEmail));
-
-        const applicant = applicantData[0];
-
-        if (!applicantData || !applicant) {
-            throw new Error("No usersData found!");
-        }
-
-        if (applicant.nftId) {
-            throw new Error("User already has a nft!");
-        }
-
-        const issueDate = new Date();
-
-        const expireDate = addDays(issueDate, 30);
-
-        const limit = 1;
-
-        logToConsole("fetching all nfts from underdog");
-
-        const getAllNftsResponse = await underdogApiInstance.get(
-            `/v2/projects/n/${UNDERDOG_BUSINESS_VISA_PROJECT_ID}/nfts?limit=${limit}`
-        );
-
-        const getAllNftsResponseData =
-            getAllNftsResponse.data as GetAllNftsResponse;
-
-        if (!getAllNftsResponseData) {
-            throw new Error("Error fetching nfts from underdog api!");
-        }
-
-        const nftMintedCount = getAllNftsResponseData?.totalPages;
-
-        if (nftMintedCount < 0) {
-            throw new Error("Error fetching nfts minted count!");
-        }
-
-        const bvImageUrl = await generateBusinessVisaImage({
-            walletAddress: applicant.walletAddress,
-            name: applicant.name ?? "Dean's List DAO Member",
-            status: "Active",
-            earnings: "0",
-        });
-
-        if (!bvImageUrl) {
-            throw new Error("Error generating business visa image!");
-        }
-
-        const newNftIssueNumber = nftMintedCount + 1;
-
-        const nftMetadata = {
-            name: `Dean's List Business Visa #${newNftIssueNumber}`,
-            description:
-                "Keep this active to gain access to USDC earning opportunities.",
-            symbol: "DLBV",
-            image: bvImageUrl,
-            attributes: {
-                status: VISA_STATUS.ACTIVE,
-                issuedAt: format(issueDate, "dd MMMM yyyy hh:mm a"),
-                expiresAt: format(expireDate, "dd MMMM yyyy hh:mm a"),
-            },
-            receiverAddress: applicant.walletAddress,
-        };
-
-        logToConsole("creating nft on underdog", nftMetadata);
-
-        const nftMintResponse = await underdogApiInstance.post(
-            `/v2/projects/n/${UNDERDOG_BUSINESS_VISA_PROJECT_ID}/nfts`,
-            nftMetadata
-        );
-
-        const nftMintResponseData = nftMintResponse.data as NftMintResponse;
-
-        if (!nftMintResponseData) {
-            throw new Error("Error minting nft!");
-        }
-
-        const underdogClaimLink = `https://claim.underdogprotocol.com/nfts/${
-            nftMintResponseData.mintAddress
-        }?network=${
-            env.SOLANA_NETWORK === "mainnet-beta" ? "MAINNET" : "DEVNET"
-        }`;
-
-        logToConsole(
-            "saving user nft data in db for applicantEmail",
-            applicantEmail
-        );
-
-        await db
-            .update(acceptedApplicantsTable)
-            .set({
-                nftId: nftMintResponseData.id,
-                nftIssuedAt: issueDate,
-                nftExpiresAt: expireDate,
-                hasClaimed: false,
-                nftClaimLink: underdogClaimLink,
-                nftMintAddress: nftMintResponseData.mintAddress,
-            })
-            .where(eq(acceptedApplicantsTable.email, applicantEmail));
-
-        logToConsole("sending claim email");
-
-        const emailId = await sendVisaAcceptedEmail({
-            to: applicant.email,
-            subject: "Your Business Visa is ready!",
-            businessVisaImage: bvImageUrl,
-            claimLink: underdogClaimLink,
-        });
-
-        if (!emailId) {
-            throw new Error("Error sending claim email!");
-        }
-
-        return res.status(200).json(
-            successHandler(
-                {
-                    emailId,
-                    nftClaimLink: underdogClaimLink,
-                    nftMintAddress: nftMintResponseData.mintAddress,
-                },
-                "Business visa claim link sent to applicant successfully"
-            )
-        );
-    } catch (error) {
-        logErrorToConsole("/mintApplicantVisa error 500 =>", error);
         return handleApiRouteError(res, error);
     }
 };

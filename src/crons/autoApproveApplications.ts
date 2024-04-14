@@ -8,8 +8,6 @@ import {
 } from "../db/schema/index.js";
 
 import { eq } from "drizzle-orm";
-import env from "../env/index.js";
-import qstashClient from "../services/qstash.js";
 
 const autoApproveApplications = async () => {
     try {
@@ -43,20 +41,6 @@ const autoApproveApplications = async () => {
                     "/acceptApplicant applicant added to db",
                     applicant.email
                 );
-
-                logToConsole(
-                    "/acceptApplicant send qstash message to mint visa"
-                );
-
-                const { messageId } = await qstashClient.publishJSON({
-                    topic: env.QSTASH_MINT_VISA_TOPIC,
-                    body: {
-                        secret: env.APP_SECRET,
-                        applicantEmail: applicant.email,
-                    },
-                });
-
-                logToConsole("/acceptApplicant qstash message sent", messageId);
             } catch (error) {
                 logErrorToConsole(
                     `/autoApproveApplicationsJob error -> failed to accept the applicant ${applicant.id}`,

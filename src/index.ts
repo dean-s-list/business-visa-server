@@ -1,5 +1,6 @@
 import app from "./app.js";
 import autoApproveApplicationsJob from "./crons/autoApproveApplications.js";
+import mintApplicantVisaJob from "./crons/mintApplicantVisa.js";
 import verifyClaimStatusJob from "./crons/verifyClaimStatus.js";
 import verifyExpireStatusJob from "./crons/verifyExpireStatus.js";
 import env from "./env/index.js";
@@ -18,6 +19,11 @@ app.listen(port, async () => {
     verifyExpireStatusJob.start();
     logToConsole(
         "Scheduled job to verify expire status which run every 10 minutes"
+    );
+
+    mintApplicantVisaJob.start();
+    logToConsole(
+        "Scheduled job to mint pending accepted visa which run every 30 minutes"
     );
 
     if (env.AUTO_APPROVE_APPLICATIONS) {

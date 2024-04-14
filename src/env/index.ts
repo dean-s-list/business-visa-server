@@ -29,15 +29,6 @@ const envSchema = z.object({
     // Underdog
     UNDERDOG_API_KEY: z.string().nonempty(),
 
-    // Qstash
-    QSTASH_TOKEN: z.string().nonempty(),
-    QSTASH_CURRENT_SIGNING_KEY: z.string().nonempty(),
-    QSTASH_NEXT_SIGNING_KEY: z.string().nonempty(),
-    QSTASH_MINT_VISA_TOPIC: z.union([
-        z.literal("mint-visa"),
-        z.literal("mint-visa-dev"),
-    ]),
-
     // Sphere
     SPHERE_PAYMENT_SUCCESS_WEBHOOK_SECRET: z.string().nonempty(),
     BUSINESS_VISA_PAYMENT_LINK_ID: z.string().nonempty(),
