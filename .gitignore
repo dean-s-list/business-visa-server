@@ -13,5 +13,5 @@ dist/
 # Ignore macOS specific files
 .DS_Store
 
-yarn-error.log
+pnpm-error.log
 

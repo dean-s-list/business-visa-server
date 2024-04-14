@@ -8,9 +8,9 @@ const envSchema = z.object({
         .string()
         .default("8080")
         .transform((val) => parseInt(val)),
-    APP_SECRET: z.string().nonempty(),
+    APP_SECRET: z.string().min(1),
     FRONTEND_API_URL: z.string().url(),
-    TZ: z.string().nonempty(),
+    TZ: z.string().min(1),
     AUTO_APPROVE_APPLICATIONS: z
         .union([z.literal("true"), z.literal("false")])
         .transform((val) => val === "true"),
@@ -21,28 +21,23 @@ const envSchema = z.object({
     SOLANA_DEVNET_RPC_URL: z.string().url().optional(),
 
     // Planetscale
-    DB_URL: z.string().nonempty(),
+    DB_URL: z.string().min(1),
 
     // Resend
-    RESEND_API_KEY: z.string().nonempty(),
+    RESEND_API_KEY: z.string().min(1),
 
     // Underdog
-    UNDERDOG_API_KEY: z.string().nonempty(),
+    UNDERDOG_API_KEY: z.string().min(1),
 
     // Sphere
-    SPHERE_PAYMENT_SUCCESS_WEBHOOK_SECRET: z.string().nonempty(),
-    BUSINESS_VISA_PAYMENT_LINK_ID: z.string().nonempty(),
+    SPHERE_PAYMENT_SUCCESS_WEBHOOK_SECRET: z.string().min(1),
+    BUSINESS_VISA_PAYMENT_LINK_ID: z.string().min(1),
 
     // ImageKit
-    IMAGEKIT_URL: z.string().nonempty(),
-    IMAGEKIT_API_KEY: z.string().nonempty(),
-    IMAGEKIT_API_SECRET: z.string().nonempty(),
+    IMAGEKIT_URL: z.string().min(1),
+    IMAGEKIT_API_KEY: z.string().min(1),
+    IMAGEKIT_API_SECRET: z.string().min(1),
     IMAGEKIT_ENV: z.union([z.literal("prod"), z.literal("dev")]),
-
-    // Airtable
-    AIRTABLE_TOKEN: z.string().nonempty(),
-    AIRTABLE_BUSINESS_VISA_APPLICANTS_BASE_ID: z.string().nonempty(),
-    AIRTABLE_BUSINESS_VISA_APPLICANTS_PROJECT_ID: z.string().nonempty(),
 });
 
 const parseEnv = () => {
