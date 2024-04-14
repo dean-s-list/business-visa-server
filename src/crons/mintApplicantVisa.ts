@@ -185,8 +185,6 @@ export async function mintPendingVisa() {
 }
 
 // it runs every 30 minutes
-const mintApplicantVisaJob = cron.schedule("*/30 * * * *", mintPendingVisa, {
-    runOnInit: true,
-});
+const mintApplicantVisaJob = cron.schedule("*/30 * * * *", mintPendingVisa);
 
 export default mintApplicantVisaJob;
