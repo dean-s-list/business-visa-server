@@ -315,13 +315,10 @@ export const renewVisa = async (req: Request, res: Response) => {
             subject: "Your business visa has been renewed!",
         });
 
-        if (!emailId) {
-            throw new Error("Error sending visa renewed email!");
-        }
-
         return res.status(200).json(
             successHandler(
                 {
+                    emailId,
                     userEmail,
                 },
                 "Business visa renewed successfully"

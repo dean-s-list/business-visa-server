@@ -46,9 +46,19 @@ export const postApplicationsBodyValidator = z.object({
 });
 
 export const acceptApplicantBodyValidator = z.object({
-    secret: z.string().nonempty(),
+    secret: z.string().min(1),
     applicantId: z.number().int().positive(),
     status: z.enum(["accepted", "rejected"]),
+});
+
+export const renewVisaManuallyBodyValidator = z.object({
+    secret: z.string().min(1),
+    userId: z.number().int().positive(),
+});
+
+export const expireVisaManuallyBodyValidator = z.object({
+    secret: z.string().min(1),
+    userId: z.number().int().positive(),
 });
 
 export type AcceptApplicantBodyValidatorType = z.infer<
