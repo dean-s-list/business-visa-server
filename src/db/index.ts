@@ -7,6 +7,7 @@ export const connection = createConnection({
     ssl: {
         rejectUnauthorized: false,
     },
+    enableKeepAlive: true,
 });
 
 const db = drizzle(connection);
